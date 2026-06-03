@@ -1,5 +1,9 @@
 @AGENTS.md
 
+# Project Context
+- PRD 문서: @docs/PRD.md
+- 개발 로드맵: @docs/ROADMAP.md
+
 # 프로젝트 컨벤션 (Next.js 16 스타터킷)
 
 ## 응답 언어
