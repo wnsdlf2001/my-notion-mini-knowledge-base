@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
 import { NotionRenderer } from "@/components/wiki/NotionRenderer"
+import { BookmarkButton } from "@/components/wiki/BookmarkButton"
+import { useBookmarks } from "@/lib/bookmarks"
 import type { WikiPage, WikiPageContent } from "@/lib/notion"
 
 interface WikiAccordionProps {
@@ -20,6 +22,7 @@ interface WikiAccordionProps {
   contents?: Record<string, WikiPageContent>
   searchQuery?: string
   selectedTopic?: string
+  bookmarkedOnly?: boolean
   className?: string
 }
 
@@ -29,14 +32,22 @@ const DIFFICULTY_COLORS: Record<string, string> = {
   하: "bg-green-500/10 text-green-600 dark:text-green-400 border-green-200 dark:border-green-800",
 }
 
-function EmptyState({ query }: { query?: string }) {
+function EmptyState({
+  query,
+  bookmarkedOnly,
+}: {
+  query?: string
+  bookmarkedOnly?: boolean
+}) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
       <FileText className="text-muted-foreground size-10" />
       <p className="text-muted-foreground text-sm">
-        {query
-          ? `"${query}"에 해당하는 문서를 찾을 수 없습니다.`
-          : "표시할 문서가 없습니다."}
+        {bookmarkedOnly
+          ? "북마크한 문서가 없습니다."
+          : query
+            ? `"${query}"에 해당하는 문서를 찾을 수 없습니다.`
+            : "표시할 문서가 없습니다."}
       </p>
     </div>
   )
@@ -47,11 +58,19 @@ export function WikiAccordion({
   contents = {},
   searchQuery = "",
   selectedTopic = "",
+  bookmarkedOnly = false,
   className,
 }: WikiAccordionProps) {
-  // 클라이언트 사이드 필터링 (제목 + 본문 텍스트)
+  const { bookmarks } = useBookmarks()
+
+  // 클라이언트 사이드 필터링 (북마크 + 토픽 + 제목/본문 텍스트)
   const filtered = React.useMemo(() => {
     let result = pages
+
+    if (bookmarkedOnly) {
+      const set = new Set(bookmarks)
+      result = result.filter((p) => set.has(p.id))
+    }
 
     if (selectedTopic && selectedTopic !== "전체") {
       result = result.filter((p) => p.topic === selectedTopic)
@@ -67,7 +86,7 @@ export function WikiAccordion({
     }
 
     return result
-  }, [pages, contents, searchQuery, selectedTopic])
+  }, [pages, contents, searchQuery, selectedTopic, bookmarkedOnly, bookmarks])
 
   // 토픽별 그룹화
   const grouped = React.useMemo(() => {
@@ -80,7 +99,7 @@ export function WikiAccordion({
   }, [filtered])
 
   if (filtered.length === 0) {
-    return <EmptyState query={searchQuery} />
+    return <EmptyState query={searchQuery} bookmarkedOnly={bookmarkedOnly} />
   }
 
   return (
@@ -134,12 +153,15 @@ export function WikiAccordion({
                         />
                       </div>
                     ) : null}
-                    <Link
-                      href={`/wiki/${page.id}`}
-                      className="text-primary w-fit text-sm underline underline-offset-4 hover:opacity-80"
-                    >
-                      전체 내용 보기 →
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/wiki/${page.id}`}
+                        className="text-primary text-sm underline underline-offset-4 hover:opacity-80"
+                      >
+                        전체 내용 보기 →
+                      </Link>
+                      <BookmarkButton pageId={page.id} />
+                    </div>
                   </div>
                 </AccordionContent>
               </AccordionItem>

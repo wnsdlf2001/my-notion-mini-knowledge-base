@@ -2,11 +2,13 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { Bookmark } from "lucide-react"
 
 import { SearchBar } from "@/components/wiki/SearchBar"
 import { WikiAccordion } from "@/components/wiki/WikiAccordion"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { useBookmarks } from "@/lib/bookmarks"
 import type { WikiPage, WikiPageContent } from "@/lib/notion"
 
 interface WikiListClientProps {
@@ -23,6 +25,8 @@ export function WikiListClient({
   selectedTopic,
 }: WikiListClientProps) {
   const [searchQuery, setSearchQuery] = React.useState(initialQuery)
+  const [bookmarkedOnly, setBookmarkedOnly] = React.useState(false)
+  const { count: bookmarkCount } = useBookmarks()
 
   // URL searchParams 동기화: 검색어/토픽 변경 시 주소를 갱신해
   // 새로고침·공유·뒤로가기(상세→목록) 시 필터 상태가 유지되도록 한다.
@@ -41,14 +45,26 @@ export function WikiListClient({
 
   return (
     <div className={cn("flex flex-col gap-6")}>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <SearchBar
           initialValue={initialQuery}
-          placeholder="제목으로 필터링..."
+          placeholder="제목·본문으로 검색..."
           navigateOnSearch={false}
           onSearch={setSearchQuery}
           className="max-w-md"
         />
+        <Button
+          type="button"
+          variant={bookmarkedOnly ? "default" : "outline"}
+          size="sm"
+          aria-pressed={bookmarkedOnly}
+          onClick={() => setBookmarkedOnly((v) => !v)}
+        >
+          <Bookmark
+            className={cn("size-4", bookmarkedOnly && "fill-current")}
+          />
+          북마크 {bookmarkCount}
+        </Button>
         {(searchQuery || selectedTopic) && (
           <Button asChild variant="ghost" size="sm">
             <Link href={resetHref} onClick={() => setSearchQuery("")}>
@@ -63,6 +79,7 @@ export function WikiListClient({
         contents={contents}
         searchQuery={searchQuery}
         selectedTopic={selectedTopic}
+        bookmarkedOnly={bookmarkedOnly}
       />
     </div>
   )

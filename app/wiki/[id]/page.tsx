@@ -6,6 +6,8 @@ import { ArrowLeft, BookOpen, Calendar } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { WikiSidebar } from "@/components/wiki/WikiSidebar"
 import { WikiMobileNav } from "@/components/wiki/WikiMobileNav"
+import { WikiToc } from "@/components/wiki/WikiToc"
+import { BookmarkButton } from "@/components/wiki/BookmarkButton"
 import { NotionRenderer } from "@/components/wiki/NotionRenderer"
 import { getPublishedPages, getPageById, groupByTopic } from "@/lib/notion"
 import { Badge } from "@/components/ui/badge"
@@ -129,9 +131,12 @@ export default async function WikiDetailPage({
                 </span>
               )}
             </div>
-            <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
-              {page.title}
-            </h1>
+            <div className="flex items-start justify-between gap-3">
+              <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+                {page.title}
+              </h1>
+              <BookmarkButton pageId={page.id} className="mt-1 shrink-0" />
+            </div>
           </div>
 
           <Separator className="mb-8" />
@@ -139,28 +144,10 @@ export default async function WikiDetailPage({
           <NotionRenderer blocks={blocks} />
         </main>
 
-        {/* 우측 목차 */}
+        {/* 우측 목차 (스크롤 스파이) */}
         {toc.length > 0 && (
           <aside className="hidden w-44 shrink-0 lg:block lg:w-52">
-            <nav
-              className="sticky top-8 space-y-1"
-              aria-label="목차"
-            >
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                목차
-              </p>
-              {toc.map((block) => (
-                <a
-                  key={block.id}
-                  href={`#h-${block.id}`}
-                  className={`block text-sm text-muted-foreground transition-colors hover:text-foreground ${
-                    block.type === "heading_3" ? "pl-3" : ""
-                  }`}
-                >
-                  {block.content}
-                </a>
-              ))}
-            </nav>
+            <WikiToc items={toc} />
           </aside>
         )}
       </div>

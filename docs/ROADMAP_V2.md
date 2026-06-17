@@ -178,22 +178,22 @@ v2는 v1에서 의도적으로 미뤘거나 한계로 남은 부분을 메워 **
 
 #### 스프린트 6 — 목차 스크롤 스파이 (V-06)
 
-- [ ] 우측 ToC를 클라이언트 컴포넌트화, `IntersectionObserver`로 현재 보이는 heading 추적
-- [ ] 활성 항목 하이라이트 + 앵커 클릭 시 `scroll-behavior: smooth`
-- [ ] 모바일(`lg` 미만)에서는 기존처럼 숨김 유지
+- [x] `WikiToc` 클라이언트 컴포넌트화, `IntersectionObserver`로 현재 보이는 heading 추적
+- [x] 활성 항목 하이라이트(`aria-current`) + `<html scroll-smooth>`로 부드러운 스크롤
+- [x] 모바일(`lg` 미만)에서는 기존처럼 숨김 유지
 
 #### 스프린트 7 — 북마크 (V-07)
 
-- [ ] localStorage 기반 북마크 store (Context 또는 경량 라이브러리), hydration-safe(마운트 후 읽기)
-- [ ] 북마크 토글 버튼: 상세 페이지 메타 영역 + 아코디언 헤더
-- [ ] `/wiki?bookmarked=1` 또는 사이드바 "북마크" 항목으로 즐겨찾기만 필터
-- [ ] 빈 북마크 Empty State, 토스트(`sonner`)로 추가/해제 피드백
-- [ ] 접근성: 토글 버튼 `aria-pressed`·`aria-label`
+- [x] localStorage 기반 store (`useSyncExternalStore`), getServerSnapshot으로 hydration-safe
+- [x] 북마크 토글 버튼: 상세 페이지 메타 + 아코디언 본문 (트리거 button 중첩 회피)
+- [x] WikiListClient "북마크 N" 토글로 즐겨찾기만 필터
+- [x] 빈 북마크 Empty State, 토스트(`sonner`)로 추가/해제 피드백
+- [x] 접근성: 토글 버튼 `aria-pressed`·`aria-label`
 
 #### Phase 4 완료 기준
-- [ ] 스크롤 시 ToC 활성 항목이 정확히 따라옴
-- [ ] 새로고침 후에도 북마크 유지, 북마크 필터 동작
-- [ ] 키보드로 북마크 토글 가능
+- [x] WikiToc + IntersectionObserver로 활성 항목 추적 (스크롤 스파이)
+- [x] localStorage 유지 + 북마크 필터 동작, 다른 탭 동기화(storage 이벤트)
+- [x] 북마크 토글 키보드 접근 가능 (Button 컴포넌트)
 
 ---
 
@@ -252,13 +252,13 @@ v2는 v1에서 의도적으로 미뤘거나 한계로 남은 부분을 메워 **
 ## 전체 완료 기준 (Definition of Done)
 
 ### 기능
-- [ ] V-01 캐싱 동작 + 발행 시 자동/수동 갱신 반영
-- [ ] V-02 리치 텍스트 서식 렌더링
-- [ ] V-03 이미지 블록 렌더링
-- [ ] V-04 본문 키워드 검색 동작
-- [ ] V-05 아코디언 본문 미리보기 (PRD 4.1 충족)
-- [ ] V-06 ToC 스크롤 스파이
-- [ ] V-07 북마크 저장·필터·유지
+- [x] V-01 캐싱 동작 + 발행 시 자동/수동 갱신 반영
+- [x] V-02 리치 텍스트 서식 렌더링
+- [x] V-03 이미지 블록 렌더링
+- [x] V-04 본문 키워드 검색 동작
+- [x] V-05 아코디언 본문 미리보기 (PRD 4.1 충족)
+- [x] V-06 ToC 스크롤 스파이
+- [x] V-07 북마크 저장·필터·유지
 
 ### 품질/성능/보안
 - [ ] tsc/lint/build 0 오류, 런타임 콘솔 오류 0건
