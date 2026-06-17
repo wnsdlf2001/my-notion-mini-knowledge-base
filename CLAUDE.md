@@ -2,7 +2,8 @@
 
 # Project Context
 - PRD 문서: @docs/PRD.md
-- 개발 로드맵: @docs/ROADMAP.md
+- 개발 로드맵 (v1, 완료): @docs/ROADMAP_V1.md
+- 개발 로드맵 (v2, 진행 중): @docs/ROADMAP_V2.md
 
 # 프로젝트 컨벤션 (Next.js 16 스타터킷)
 
