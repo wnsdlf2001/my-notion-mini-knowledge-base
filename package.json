@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "notion:check": "node scripts/notion-check.mjs",
-    "notion:seed": "node scripts/seed-notion.mjs"
+    "notion:seed": "node scripts/seed-notion.mjs",
+    "notion:seed-v2": "node scripts/seed-notion-v2.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
