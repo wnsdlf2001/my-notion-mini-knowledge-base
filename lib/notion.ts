@@ -1,9 +1,17 @@
+import { unstable_cache } from "next/cache";
 import { Client } from "@notionhq/client";
 import type {
   PageObjectResponse,
   BlockObjectResponse,
   RichTextItemResponse,
 } from "@notionhq/client/build/src/api-endpoints";
+
+/**
+ * Notion 데이터 캐시 태그. 발행/수정 시 `/api/revalidate`에서
+ * `revalidateTag(NOTION_CACHE_TAG)`로 즉시 무효화한다.
+ */
+export const NOTION_CACHE_TAG = "notion-pages";
+const CACHE_REVALIDATE_SECONDS = 3600; // 시간 기반 폴백 (1시간)
 
 // ─────────────────────────────────────────────
 // TypeScript 타입 정의
@@ -99,7 +107,7 @@ function parsePageProperties(page: PageObjectResponse): WikiPage {
  * Status === "발행됨" 인 모든 페이지를 반환합니다.
  * 환경변수 미설정 시 빈 배열을 반환합니다.
  */
-export async function getPublishedPages(): Promise<WikiPage[]> {
+async function fetchPublishedPages(): Promise<WikiPage[]> {
   const notion = getNotionClient();
   if (!notion) return [];
 
@@ -145,7 +153,7 @@ export async function getPublishedPages(): Promise<WikiPage[]> {
  * 단일 페이지의 메타데이터와 블록 목록을 반환합니다.
  * 환경변수 미설정 시 null과 빈 배열을 반환합니다.
  */
-export async function getPageById(id: string): Promise<{
+async function fetchPageById(id: string): Promise<{
   page: WikiPage | null;
   blocks: WikiBlock[];
 }> {
@@ -178,6 +186,30 @@ export async function getPageById(id: string): Promise<{
     return { page: null, blocks: [] };
   }
 }
+
+// ─────────────────────────────────────────────
+// 캐시 래퍼 (unstable_cache)
+// Notion 호출 결과를 태그 기반으로 캐싱한다. rate limit 완화 + 응답 속도 개선.
+// 시간 기반(revalidate)으로 자동 만료되고, 발행/수정 시 revalidateTag로 즉시 갱신된다.
+// ─────────────────────────────────────────────
+
+/**
+ * Status === "발행됨" 페이지 목록 (캐시됨).
+ */
+export const getPublishedPages = unstable_cache(
+  fetchPublishedPages,
+  ["published-pages"],
+  { tags: [NOTION_CACHE_TAG], revalidate: CACHE_REVALIDATE_SECONDS }
+);
+
+/**
+ * 단일 페이지 메타데이터 + 블록 (id별 캐시됨).
+ */
+export const getPageById = unstable_cache(
+  fetchPageById,
+  ["page-by-id"],
+  { tags: [NOTION_CACHE_TAG], revalidate: CACHE_REVALIDATE_SECONDS }
+);
 
 /**
  * WikiPage 배열을 토픽별 Map으로 그룹화하여 반환합니다.

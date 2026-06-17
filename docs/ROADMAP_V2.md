@@ -77,8 +77,8 @@ v2는 v1에서 의도적으로 미뤘거나 한계로 남은 부분을 메워 **
 
 | 결정 | 선택 | 근거 |
 |------|------|------|
-| 캐싱 방식 | Next 16 `'use cache'` + `cacheLife` + `cacheTag` | 프레임워크 표준, 데이터 단위 캐싱 |
-| 갱신 방식 | `revalidateTag('notion')` (Webhook) + `cacheLife('hours')` 폴백 | 발행 즉시 반영 + 안전망 |
+| 캐싱 방식 | `unstable_cache`(이전 모델) + `tags` + `revalidate` | 전역 `cacheComponents: true` 활성화로 인한 기존 라우트 동작 변경 위험 회피. Notion SDK는 `fetch` 미사용이라 `unstable_cache`가 적합 |
+| 갱신 방식 | `revalidateTag('notion-pages', 'max')` (Webhook/수동) + `revalidate: 3600` 폴백 | 발행 즉시 반영 + 안전망. Next 16에서 `revalidateTag`는 2번째 인자(stale 윈도우 프로파일) 필수 |
 | 본문 검색 | 캐시된 페이지 데이터에 본문 plain-text 동봉 → 클라이언트 필터 | 외부 검색엔진 없이 MVP, rate limit 무관 |
 | 리치 텍스트 | `WikiRichText[]` 세그먼트 배열로 모델 변경 | 서식 보존, parseBlock↔Renderer 페어 |
 | 북마크 저장소 | localStorage + Context/경량 store | 인증 없이 즉시, 서버 부하 0 |
@@ -99,19 +99,20 @@ v2는 v1에서 의도적으로 미뤘거나 한계로 남은 부분을 메워 **
 
 #### 스프린트 1
 
-- [ ] `next.config.ts`에 `cacheComponents: true` 활성화 및 영향 범위 점검
-- [ ] `lib/notion.ts`의 `getPublishedPages()`/`getPageById()`에 `'use cache'` + `cacheTag('notion-pages')` + `cacheLife('hours')` 적용
-  - 환경변수 미설정 시 빈 배열/`null` 반환 fallback 유지 (shrimp-rules 보안 규칙)
-- [ ] `app/api/revalidate/route.ts` 라우트 핸들러
-  - `NOTION_REVALIDATE_SECRET` 검증 후 `revalidateTag('notion-pages')` 호출
+- [x] `lib/notion.ts`의 `getPublishedPages()`/`getPageById()`를 `unstable_cache`로 래핑 (`tags: ['notion-pages']`, `revalidate: 3600`)
+  - 내부 `fetch*` 함수로 분리 후 캐시 래퍼 export. 환경변수 미설정 시 빈 배열/`null` fallback 유지 (shrimp-rules 보안 규칙)
+- [x] `app/api/revalidate/route.ts` 라우트 핸들러
+  - `NOTION_REVALIDATE_SECRET`(쿼리/헤더) 검증 후 `revalidateTag('notion-pages', 'max')` 호출
+  - Notion Webhook 최초 `verification_token` 핸드셰이크 에코 처리
   - 시크릿은 서버 전용 (`NEXT_PUBLIC_` 금지)
-- [ ] Notion Webhook 연결 (발행/수정 시 위 엔드포인트 호출) — 미지원 환경이면 Vercel Cron 또는 수동 호출로 폴백
-- [ ] 홈(`/`)·`sitemap.ts`가 캐시 갱신 시 최신 개수 반영되는지 확인
+- [ ] Notion Webhook 연결 (발행/수정 시 위 엔드포인트 호출) — 미지원 환경이면 Vercel Cron 또는 수동 호출로 폴백 *(배포 후 설정)*
+- [x] 홈(`/`)·`sitemap.ts`가 빌드 출력상 `Revalidate 1h`로 전환됨 확인
 
 #### Phase 1 완료 기준
-- [ ] 동일 페이지 연속 요청 시 Notion API 호출이 캐시로 생략됨 (로그 확인)
-- [ ] `/api/revalidate` 호출 후 변경 콘텐츠가 반영됨
-- [ ] `npm run build` 통과, 런타임 오류 0건
+- [x] 빌드 출력에서 `/`·`/sitemap.xml`이 Revalidate 1h, Notion 호출은 태그 캐시로 공유됨
+- [x] `/api/revalidate`: 시크릿 없음 401, 정상 시크릿 시 `revalidated:true`, 검증 핸드셰이크 에코 동작
+- [x] `npm run build` 통과, 런타임 오류 0건
+- [ ] *(배포 후)* Vercel에 `NOTION_REVALIDATE_SECRET` 등록 + Webhook 연결
 
 ---
 
