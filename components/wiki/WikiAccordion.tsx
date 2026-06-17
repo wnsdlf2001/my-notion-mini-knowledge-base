@@ -12,10 +12,12 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
-import type { WikiPage } from "@/lib/notion"
+import { NotionRenderer } from "@/components/wiki/NotionRenderer"
+import type { WikiPage, WikiPageContent } from "@/lib/notion"
 
 interface WikiAccordionProps {
   pages: WikiPage[]
+  contents?: Record<string, WikiPageContent>
   searchQuery?: string
   selectedTopic?: string
   className?: string
@@ -42,11 +44,12 @@ function EmptyState({ query }: { query?: string }) {
 
 export function WikiAccordion({
   pages,
+  contents = {},
   searchQuery = "",
   selectedTopic = "",
   className,
 }: WikiAccordionProps) {
-  // 클라이언트 사이드 필터링
+  // 클라이언트 사이드 필터링 (제목 + 본문 텍스트)
   const filtered = React.useMemo(() => {
     let result = pages
 
@@ -56,11 +59,15 @@ export function WikiAccordion({
 
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase()
-      result = result.filter((p) => p.title.toLowerCase().includes(q))
+      result = result.filter((p) => {
+        if (p.title.toLowerCase().includes(q)) return true
+        const body = contents[p.id]?.searchText
+        return body ? body.toLowerCase().includes(q) : false
+      })
     }
 
     return result
-  }, [pages, searchQuery, selectedTopic])
+  }, [pages, contents, searchQuery, selectedTopic])
 
   // 토픽별 그룹화
   const grouped = React.useMemo(() => {
@@ -119,6 +126,14 @@ export function WikiAccordion({
                         {new Date(page.lastUpdated).toLocaleDateString("ko-KR")}
                       </p>
                     )}
+                    {contents[page.id]?.preview?.length ? (
+                      <div className="border-border/60 border-l-2 pl-3 opacity-90">
+                        <NotionRenderer
+                          blocks={contents[page.id].preview}
+                          className="text-sm"
+                        />
+                      </div>
+                    ) : null}
                     <Link
                       href={`/wiki/${page.id}`}
                       className="text-primary w-fit text-sm underline underline-offset-4 hover:opacity-80"

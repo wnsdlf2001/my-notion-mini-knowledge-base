@@ -7,16 +7,18 @@ import { SearchBar } from "@/components/wiki/SearchBar"
 import { WikiAccordion } from "@/components/wiki/WikiAccordion"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import type { WikiPage } from "@/lib/notion"
+import type { WikiPage, WikiPageContent } from "@/lib/notion"
 
 interface WikiListClientProps {
   pages: WikiPage[]
+  contents: Record<string, WikiPageContent>
   initialQuery: string
   selectedTopic: string
 }
 
 export function WikiListClient({
   pages,
+  contents,
   initialQuery,
   selectedTopic,
 }: WikiListClientProps) {
@@ -58,6 +60,7 @@ export function WikiListClient({
 
       <WikiAccordion
         pages={pages}
+        contents={contents}
         searchQuery={searchQuery}
         selectedTopic={selectedTopic}
       />

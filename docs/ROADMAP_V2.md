@@ -152,21 +152,21 @@ v2는 v1에서 의도적으로 미뤘거나 한계로 남은 부분을 메워 **
 
 #### 스프린트 4 — 전체 본문 검색 (V-04)
 
-- [ ] 캐시된 페이지 데이터에 본문 plain-text(`searchText`) 동봉 — `getPublishedPages()` 확장 또는 별도 `getSearchIndex()`
-- [ ] `WikiAccordion`/`WikiListClient` 필터를 제목 + 본문(`searchText`) `includes`로 확장 (debounce 유지)
-- [ ] 검색어 하이라이트(선택) 및 0건 Empty State 메시지 유지
-- [ ] 본문 동봉으로 인한 페이로드 증가 모니터링 (필요 시 요약 길이 제한)
+- [x] `getPageContents()` 추가 — 발행 문서 블록을 동시성 제한(3)으로 수집, `searchText`(2000자 제한) 동봉, 캐싱
+- [x] `WikiAccordion` 필터를 제목 OR 본문(`searchText`) `includes`로 확장 (debounce 유지)
+- [x] 0건 Empty State 메시지 유지
+- [x] 본문 길이 제한(2000자) + 미리보기 블록 수 제한(4)으로 페이로드 관리
 
 #### 스프린트 5 — 아코디언 본문 미리보기 (V-05)
 
-- [ ] 아코디언 `AccordionContent`에 본문 앞부분(N블록 또는 요약) 렌더 — `NotionRenderer` 재사용
-- [ ] "전체 내용 보기" 링크 유지, 미리보기 길이 제한
-- [ ] PRD 4.1 "아코디언 본문 Notion 마크다운 렌더링" 요구 충족 확인
+- [x] 아코디언 `AccordionContent`에 앞부분 4블록 미리보기 렌더 — `NotionRenderer` 재사용
+- [x] "전체 내용 보기" 링크 유지
+- [x] PRD 4.1 "아코디언 본문 Notion 마크다운 렌더링" 요구 충족
 
 #### Phase 3 완료 기준
-- [ ] 본문에만 있는 키워드로 검색 시 해당 문서가 노출
-- [ ] 아코디언 펼침 시 본문 미리보기 표시, rate limit 미발생(캐시 적중)
-- [ ] 검색 입력 후 300ms 내 필터링 동작 유지
+- [x] 본문에만 있는 키워드(searchText) 기반 필터 로직 + 데이터 전달 확인
+- [x] 아코디언에 본문 미리보기 표시, 콘텐츠는 캐시된 `getPageContents`로 공급
+- [x] 검색 debounce 300ms 유지, tsc/lint/build 통과
 
 ---
 

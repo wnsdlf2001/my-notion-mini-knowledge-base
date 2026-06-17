@@ -5,7 +5,7 @@ import { ArrowLeft, BookOpen } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { WikiSidebar } from "@/components/wiki/WikiSidebar"
 import { WikiListClient } from "@/components/wiki/WikiListClient"
-import { getPublishedPages, groupByTopic } from "@/lib/notion"
+import { getPublishedPages, getPageContents, groupByTopic } from "@/lib/notion"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
@@ -22,7 +22,10 @@ export default async function WikiPage({ searchParams }: WikiPageProps) {
   const { topic: selectedTopic = "", q: searchQuery = "" } =
     await searchParams
 
-  const pages = await getPublishedPages()
+  const [pages, contents] = await Promise.all([
+    getPublishedPages(),
+    getPageContents(),
+  ])
   const topicMap = groupByTopic(pages)
   const topics = Array.from(topicMap.entries()).map(([topic, items]) => ({
     topic,
@@ -84,6 +87,7 @@ export default async function WikiPage({ searchParams }: WikiPageProps) {
           {/* 검색 + 아코디언 (클라이언트) */}
           <WikiListClient
             pages={pages}
+            contents={contents}
             initialQuery={searchQuery}
             selectedTopic={selectedTopic}
           />

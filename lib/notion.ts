@@ -241,6 +241,65 @@ export const getPageById = unstable_cache(
   { tags: [NOTION_CACHE_TAG], revalidate: CACHE_REVALIDATE_SECONDS }
 );
 
+// ─────────────────────────────────────────────
+// 본문 콘텐츠 (검색 인덱스 + 미리보기)
+// 발행 문서들의 블록을 모아 검색용 plain-text와 미리보기 블록을 제공한다.
+// rate limit를 고려해 동시성 제한(3)으로 수집하고, 결과는 캐싱된다.
+// ─────────────────────────────────────────────
+
+export interface WikiPageContent {
+  /** 전체 본문 plain-text (검색용, 길이 제한) */
+  searchText: string;
+  /** 아코디언 미리보기용 앞부분 블록 */
+  preview: WikiBlock[];
+}
+
+const SEARCH_TEXT_MAX = 2000;
+const PREVIEW_BLOCK_COUNT = 4;
+
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T) => Promise<R>
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let cursor = 0;
+  async function worker() {
+    while (cursor < items.length) {
+      const idx = cursor++;
+      results[idx] = await fn(items[idx]);
+    }
+  }
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, worker)
+  );
+  return results;
+}
+
+async function fetchPageContents(): Promise<Record<string, WikiPageContent>> {
+  const pages = await fetchPublishedPages();
+  const entries = await mapWithConcurrency(pages, 3, async (page) => {
+    const { blocks } = await fetchPageById(page.id);
+    const searchText = blocks
+      .map((b) => b.content)
+      .filter(Boolean)
+      .join(" ")
+      .slice(0, SEARCH_TEXT_MAX);
+    const preview = blocks.slice(0, PREVIEW_BLOCK_COUNT);
+    return [page.id, { searchText, preview }] as const;
+  });
+  return Object.fromEntries(entries);
+}
+
+/**
+ * 발행 문서별 본문 콘텐츠(검색 텍스트 + 미리보기 블록) 맵 (캐시됨).
+ */
+export const getPageContents = unstable_cache(
+  fetchPageContents,
+  ["page-contents"],
+  { tags: [NOTION_CACHE_TAG], revalidate: CACHE_REVALIDATE_SECONDS }
+);
+
 /**
  * WikiPage 배열을 토픽별 Map으로 그룹화하여 반환합니다.
  */
