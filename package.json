@@ -6,10 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "notion:check": "node scripts/notion-check.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@notionhq/client": "^5.22.0",
     "@tanstack/react-query": "^5.100.10",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

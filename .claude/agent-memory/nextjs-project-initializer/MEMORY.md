@@ -1,0 +1,1 @@
+- [Mini KB 초기화 내역](project-mini-kb-init.md) — @notionhq/client API 구조 변경사항(databases.query 없음, dataSources.query 사용), 제거된 보일러플레이트 목록

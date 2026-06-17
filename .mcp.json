@@ -8,6 +8,15 @@
         "@upstash/context7-mcp"
       ],
       "env": {}
+    },
+   "shrimp-task-manager": {
+      "command": "node",
+      "args": ["/Users/chocoz/Desktop/claude_code_ingang/shrimp_manager/mcp-shrimp-task-manager/dist/index.js"],
+      "env": {
+        "DATA_DIR": "/Users/chocoz/Desktop/claude_code_ingang/invoice-web/my-app/shrimp_data",
+        "TEMPLATES_USE": "en",
+        "ENABLE_GUI": "false"
+      }
     }
   }
 }

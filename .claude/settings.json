@@ -1,0 +1,59 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm i *)",
+      "Bash(npx shadcn@latest add card input label textarea form dialog sheet sonner dropdown-menu separator skeleton avatar badge tooltip --yes --overwrite)",
+      "Bash(npx shadcn@latest add form --yes)",
+      "Bash(npx shadcn@latest add form --yes --overwrite)",
+      "Bash(npx shadcn@latest add form --yes --overwrite --debug)",
+      "Bash(npx shadcn@latest --help)",
+      "Bash(npx shadcn@latest add --help)",
+      "Bash(npx shadcn@latest search shadcn)",
+      "Bash(findstr /I \"form\")",
+      "Bash(npx shadcn@latest view form)",
+      "Bash(npx shadcn@latest add form --yes --dry-run)",
+      "Bash(npx shadcn@latest add form --yes --diff)",
+      "Bash(npx shadcn@latest add form --yes --view)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/eslint-fix.ps1",
+            "timeout": 30,
+            "statusMessage": "ESLint --fix 실행 중"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/tsc-check.ps1",
+            "timeout": 60,
+            "statusMessage": "TypeScript 타입체크 중"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/build-before-commit.ps1",
+            "timeout": 180,
+            "statusMessage": "git commit 감지 시 build 검증"
+          }
+        ]
+      }
+    ]
+  }
+}

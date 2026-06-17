@@ -1,0 +1,2 @@
+- [Mini Knowledge Base 프로젝트 현황](project-mini-knowledge-base.md) — Notion CMS 기반 개인 위키, Phase 1~3 구현 완료, 배포 미착수
+- [Notion CMS 로드맵 패턴](roadmap-patterns-notion-cms.md) — Phase 분할 전략, Server/Client 경계, 자주 과소평가 영역
