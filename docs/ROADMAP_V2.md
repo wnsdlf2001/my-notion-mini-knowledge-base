@@ -124,23 +124,23 @@ v2는 v1에서 의도적으로 미뤘거나 한계로 남은 부분을 메워 **
 
 #### 스프린트 2 — 리치 텍스트 (V-02)
 
-- [ ] `lib/notion.ts`: `WikiRichText` 타입 추가 (`text`, `annotations{bold,italic,strikethrough,code}`, `href`)
-- [ ] `parseBlock()`: `extractPlainText` 대신 rich_text 세그먼트 보존 함수로 교체 (paragraph/heading/list/quote 전부)
-- [ ] **동시 수정 (shrimp-rules)**: `WikiBlock` 타입 변경 → `WikiAccordion`, `app/wiki/[id]/page.tsx`, `generateMetadata`(plain-text 폴백) 점검
-- [ ] `NotionRenderer.tsx`: 세그먼트를 `<strong>/<em>/<code>/<a>`로 렌더, heading `id` 앵커는 plain-text 기준 유지
-- [ ] ToC·메타·검색용 plain-text 추출 헬퍼 별도 유지 (`richTextToPlain()`)
+- [x] `lib/notion.ts`: `WikiRichText` 타입 추가 (`text`, `bold/italic/strikethrough/code`, `href`)
+- [x] `parseBlock()`: `content`(plain) 유지 + `richText` 세그먼트 추가 보존 (paragraph/heading/list/quote 전부)
+- [x] **동시 수정 (shrimp-rules)**: 추가 필드 방식이라 `WikiAccordion`·상세 페이지 ToC·`generateMetadata`는 `content`(plain) 그대로 사용 → 변경 불필요 확인
+- [x] `NotionRenderer.tsx`: `RichText` 컴포넌트로 `<strong>/<em>/<s>/<code>/<a>` 렌더, heading `id` 앵커는 `block.id` 기준 유지
+- [x] ToC·메타·검색은 기존 `content`(plain-text) 그대로 사용 (추가 헬퍼 불필요)
 
 #### 스프린트 3 — 이미지 블록 (V-03)
 
-- [ ] `parseBlock()`에 `case "image"` 추가 → `WikiBlock.url`, `caption` 확장 (페어 작업)
-- [ ] `NotionRenderer.tsx`의 `BlockRenderer()`에 `case "image"` → `next/image` 렌더 + caption
-- [ ] `next.config.ts` `images.remotePatterns`에 Notion S3/외부 호스트 등록
-- [ ] Notion 서명 URL 만료 대응: 캐시 `cacheLife` 주기에 맞춰 재발급되도록 확인 (또는 이미지 프록시 검토)
+- [x] `parseBlock()`에 `case "image"` 추가 → `WikiBlock.url`, `caption` 확장 (페어 작업)
+- [x] `NotionRenderer.tsx`의 `BlockRenderer()`에 `case "image"` → `next/image` 렌더 + figcaption
+- [x] `next.config.ts` `images.remotePatterns`에 Notion S3/`notion.so`/`unsplash` 등록
+- [ ] Notion 서명 URL 만료 대응: 캐시 revalidate(1h) 주기에 맞춰 재발급되나, 만료 임계 시 깨짐 가능 → 필요 시 이미지 프록시 검토 *(v2.1 후보)*
 
 #### Phase 2 완료 기준
-- [ ] 굵게/기울임/인라인코드/링크가 본문에 정상 표시
-- [ ] 이미지 블록이 깨짐 없이 렌더 (만료 URL 포함)
-- [ ] heading 앵커(`h-{id}`)·ToC 연동 유지, tsc/lint/build 통과
+- [x] 굵게/기울임/인라인코드/링크가 본문에 정상 표시 (데모 문서로 검증)
+- [x] 이미지 블록이 `next/image`로 렌더 (Unsplash 외부 이미지 검증)
+- [x] heading 앵커(`h-{id}`)·ToC 연동 유지, tsc/lint/build 통과
 
 ---
 

@@ -29,12 +29,29 @@ export interface WikiPage {
   status: Status | null;
 }
 
+/** 인라인 서식 세그먼트 (굵게/기울임/취소선/인라인코드/링크) */
+export interface WikiRichText {
+  text: string;
+  bold?: boolean;
+  italic?: boolean;
+  strikethrough?: boolean;
+  code?: boolean;
+  href?: string;
+}
+
 export interface WikiBlock {
   id: string;
   type: string;
+  /** plain-text (ToC 앵커·검색·메타용). richText가 없을 때의 폴백이기도 함 */
   content: string;
+  /** 인라인 서식 렌더링용 세그먼트. 텍스트 블록에 존재 */
+  richText?: WikiRichText[];
   level?: number;
   language?: string;
+  /** image 블록의 소스 URL */
+  url?: string;
+  /** image 블록의 캡션 */
+  caption?: string;
 }
 
 // ─────────────────────────────────────────────
@@ -58,6 +75,19 @@ function getNotionClient(): Client | null {
 
 function extractPlainText(richTexts: RichTextItemResponse[]): string {
   return richTexts.map((rt) => rt.plain_text).join("");
+}
+
+/** Notion rich_text 배열을 인라인 서식 세그먼트로 변환 (빈 값은 생략해 페이로드 절약) */
+function parseRichText(richTexts: RichTextItemResponse[]): WikiRichText[] {
+  return richTexts.map((rt) => {
+    const seg: WikiRichText = { text: rt.plain_text };
+    if (rt.annotations.bold) seg.bold = true;
+    if (rt.annotations.italic) seg.italic = true;
+    if (rt.annotations.strikethrough) seg.strikethrough = true;
+    if (rt.annotations.code) seg.code = true;
+    if (rt.href) seg.href = rt.href;
+    return seg;
+  });
 }
 
 function parsePageProperties(page: PageObjectResponse): WikiPage {
@@ -236,34 +266,40 @@ function parseBlock(block: BlockObjectResponse): WikiBlock {
       return {
         ...base,
         content: extractPlainText(block.paragraph.rich_text),
+        richText: parseRichText(block.paragraph.rich_text),
       };
     case "heading_1":
       return {
         ...base,
         content: extractPlainText(block.heading_1.rich_text),
+        richText: parseRichText(block.heading_1.rich_text),
         level: 1,
       };
     case "heading_2":
       return {
         ...base,
         content: extractPlainText(block.heading_2.rich_text),
+        richText: parseRichText(block.heading_2.rich_text),
         level: 2,
       };
     case "heading_3":
       return {
         ...base,
         content: extractPlainText(block.heading_3.rich_text),
+        richText: parseRichText(block.heading_3.rich_text),
         level: 3,
       };
     case "bulleted_list_item":
       return {
         ...base,
         content: extractPlainText(block.bulleted_list_item.rich_text),
+        richText: parseRichText(block.bulleted_list_item.rich_text),
       };
     case "numbered_list_item":
       return {
         ...base,
         content: extractPlainText(block.numbered_list_item.rich_text),
+        richText: parseRichText(block.numbered_list_item.rich_text),
       };
     case "code":
       return {
@@ -275,7 +311,14 @@ function parseBlock(block: BlockObjectResponse): WikiBlock {
       return {
         ...base,
         content: extractPlainText(block.quote.rich_text),
+        richText: parseRichText(block.quote.rich_text),
       };
+    case "image": {
+      const img = block.image;
+      const url = img.type === "external" ? img.external.url : img.file.url;
+      const caption = extractPlainText(img.caption);
+      return { ...base, content: caption, url, caption };
+    }
     case "divider":
       return { ...base, content: "" };
     default:
