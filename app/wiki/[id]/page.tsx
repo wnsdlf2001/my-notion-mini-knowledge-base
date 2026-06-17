@@ -5,6 +5,7 @@ import { ArrowLeft, BookOpen, Calendar } from "lucide-react"
 
 import { ThemeToggle } from "@/components/theme-toggle"
 import { WikiSidebar } from "@/components/wiki/WikiSidebar"
+import { WikiMobileNav } from "@/components/wiki/WikiMobileNav"
 import { NotionRenderer } from "@/components/wiki/NotionRenderer"
 import { getPublishedPages, getPageById, groupByTopic } from "@/lib/notion"
 import { Badge } from "@/components/ui/badge"
@@ -80,6 +81,11 @@ export default async function WikiDetailPage({
     <div className="flex flex-1 flex-col">
       <header className="flex items-center justify-between border-b px-6 py-4">
         <div className="flex items-center gap-2">
+          <WikiMobileNav
+            topics={topics}
+            currentTopic={page.topic}
+            currentPageId={page.id}
+          />
           <Button asChild variant="ghost" size="icon-sm" aria-label="위키 목록으로">
             <Link href="/wiki">
               <ArrowLeft />
